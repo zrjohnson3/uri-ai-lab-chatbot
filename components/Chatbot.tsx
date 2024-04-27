@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { fetchAIResponse } from '../api/ai';
 import tw from 'tailwind-react-native-classnames';
 import ChatBubble from '../components/ChatBubble';
+import * as Speech from 'expo-speech';
+import ExpoSpeech from './ExpoSpeech';
 
 
 const Chatbot = () => {
@@ -41,7 +43,6 @@ const Chatbot = () => {
 
     }
 
-
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -61,6 +62,7 @@ const Chatbot = () => {
 
             {/* Input Section */}
             <View style={tw`flex-row p-2 m-2 items-center border-t border-gray-200`}>
+
                 <TextInput
                     onChangeText={handleTextInput}
                     style={tw`flex-1 mx-2 p-2 border border-black rounded-lg`}
