@@ -1,17 +1,17 @@
 import { StatusBar } from 'expo-status-bar';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { fetchAIResponse } from '../api/ai';
 import tw from 'tailwind-react-native-classnames';
 import ChatBubble from '../components/ChatBubble';
-import * as Speech from 'expo-speech';
-import ExpoSpeech from './ExpoSpeech';
 
 
 const Chatbot = () => {
     const [messages, setMessages] = useState<{ text: String; type: 'user' | 'admin' }[]>([]); // Array of objects [{role: 'user', content: 'Hello'}, {role: 'system', content: 'Hi!'}
     const [inputMessage, setInputMessage] = useState('');
     const [error, setError] = useState(null);
+
+    const inputRef = useRef(null);
 
 
     // Handle Text Input
@@ -21,6 +21,12 @@ const Chatbot = () => {
 
     // Submit Message Button Clicked
     const handleSubmitMessage = async () => {
+
+        if (inputMessage.trim() === '') {
+            console.log('Empty Message');
+            return; // Don't send empty message 
+        }
+
         // setMessages([...messages, { role: 'user', content: inputMessage }]);
         setMessages(prev => [...prev, { text: inputMessage, type: 'user' }]);
         console.log('Button Clicked, Message sent');
@@ -35,6 +41,8 @@ const Chatbot = () => {
                 console.log('Message Content:', messageContent);
                 // setOutputMessage(messageContent);
             }
+            // Clear the input message state to reset the text input
+            setInputMessage('');
         }
         catch (error: any) {
             setError(error)
@@ -46,22 +54,23 @@ const Chatbot = () => {
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={tw`flex-1 bg-blue-100`}
+            style={tw`flex-1 bg-blue-50`}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 78 : 0} // Adjust this value based on navbar height or status bar height
         >
             <ScrollView contentContainerStyle={tw`items-center`}>
                 {/* Header and Messages */}
                 <Text style={tw`mt-2 pt-8 px-2 text-center text-lg`}>
-                    Welcome to ZenBot!{"\n"}Talk directly to ChatGPT
+                    Welcome to Z-Bot!{"\n"}Talk directly to ChatGPT
                 </Text>
                 <View style={tw`w-full p-4`}>
                     {messages.map((message, index) => (
-                        <ChatBubble key={index} text={message.text} type={message.type} />
+                        <ChatBubble key={index} text={message.text} type={message.type} style={message.type === 'user' ? styles.userMessage : styles.botMessages} />
                     ))}
                 </View>
             </ScrollView>
 
             {/* Input Section */}
-            <View style={tw`flex-row p-2 m-2 items-center border-t border-gray-200`}>
+            <View style={tw`flex-row p-4 m-2 items-center border-t border-gray-200`}>
 
                 <TextInput
                     onChangeText={handleTextInput}
@@ -86,6 +95,22 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
+        flexDirection: 'column',
+    },
+    header: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 30,
+    },
+    userMessage: {
+        backgroundColor: '#3498db',
+        marginLeft: 'auto',
+        flexDirection: 'row-reverse',
+    },
+    botMessages: {
+        backgroundColor: '#bdc3c7',
+        marginRight: 50,
+        flexDirection: 'row',
     },
 });
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import tw from 'tailwind-react-native-classnames';
 
 const Landing = ({ navigation }: { navigation: any }) => {
     return (
@@ -47,25 +48,27 @@ const Landing = ({ navigation }: { navigation: any }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        // backgroundColor: '#dbeafe',
+        // backgroundColor: '#ebf8ff',
+        backgroundColor: '#eff6ff', // light blue / greyish color. Good for background
         padding: 20,
+        justifyContent: 'space-evenly',
     },
     header: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 30,
+        // marginBottom: 30,
         textAlign: 'center',
     },
     actionCard: {
         width: '100%',
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: 10,
         padding: 15,
     },
     actionText: {
-        fontSize: 18,
+        fontSize: 20,
         textAlign: 'center',
         marginBottom: 10,
     },

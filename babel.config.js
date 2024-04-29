@@ -4,13 +4,3 @@ module.exports = function (api) {
     presets: ['babel-preset-expo'],
   };
 };
-
-module.exports = {
-  dependencies: {
-    'react-native-vector-icons': {
-      platforms: {
-        ios: null,
-      },
-    },
-  },
-};

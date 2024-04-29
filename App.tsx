@@ -7,15 +7,6 @@ import CreateAccount from './components/CreateAccount';
 import Login from './components/Login';
 const Stack = createNativeStackNavigator();
 
-// export default function App() {
-//   return (
-//     <>
-//       <Landing />
-//       {/* <Chatbot /> */}
-//     </>
-//   );
-// }
-
 export default function App() {
   return (
     <NavigationContainer>
@@ -28,11 +19,3 @@ export default function App() {
     </NavigationContainer>
   );
 }
-
-const themeColors = {
-  background: 'bg-blue-50',
-  button: 'bg-blue-400 rounded-lg text-white px-4 py-2',
-  buttonText: 'text-black',
-  input: 'bg-black rounded-lg px-4 py-2',
-  text: 'text-blue-900'
-};
