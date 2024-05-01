@@ -1,9 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Button } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { fetchAIResponse } from '../api/ai';
 import tw from 'tailwind-react-native-classnames';
 import ChatBubble from '../components/ChatBubble';
+import { useNavigation } from '@react-navigation/native';
 
 
 const Chatbot = () => {
@@ -12,6 +13,22 @@ const Chatbot = () => {
     const [error, setError] = useState(null);
 
     const inputRef = useRef(null);
+
+    const navigator = useNavigation();
+    // const user = // check if user is logged in
+    // // Add your logic here to check if the user is logged in
+    // // For example, you can use a state variable or a function to determine the user's login status
+
+    // useEffect(() => {
+    //     // Focus on the input field when the component mounts
+    //     if (user) {
+    //         (navigator.setOptions({ // Replace 'navigation' with 'navigator'
+    //             headerLeft: () => (
+    //                 <Button title="Go back" onPress={() => navigator.goBack()} /> // Replace 'navigation' with 'navigator'
+    //             ),
+    //         }), []); // Add the missing closing parenthesis
+    //     }
+    // })
 
 
     // Handle Text Input
