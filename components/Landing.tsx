@@ -60,6 +60,10 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         // marginBottom: 30,
         textAlign: 'center',
+        // make header the very top of the screen
+        marginVertical: -50,
+        paddingBottom: 50,
+
     },
     actionCard: {
         width: '100%',
