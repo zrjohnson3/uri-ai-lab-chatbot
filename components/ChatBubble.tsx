@@ -6,7 +6,7 @@ import ExpoSpeech from './ExpoSpeech';
 type BubbleType = 'user' | 'admin';
 
 interface ChatBubbleProps {
-    text: String;
+    text: string;
     type: BubbleType;
     style: any;
 }

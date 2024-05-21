@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 
 
 const Chatbot = () => {
-    const [messages, setMessages] = useState<{ text: String; type: 'user' | 'admin' }[]>([]); // Array of objects [{role: 'user', content: 'Hello'}, {role: 'system', content: 'Hi!'}
+    const [messages, setMessages] = useState<{ text: string; type: 'user' | 'admin' }[]>([]); // Array of objects [{role: 'user', content: 'Hello'}, {role: 'system', content: 'Hi!'}
     const [inputMessage, setInputMessage] = useState('');
     const [error, setError] = useState(null);
 
@@ -48,6 +48,8 @@ const Chatbot = () => {
         setMessages(prev => [...prev, { text: inputMessage, type: 'user' }]);
         console.log('Button Clicked, Message sent');
         console.log(inputMessage);
+        // Clear the input message state (reset the text input)
+        setInputMessage('');
 
         try {
             const data = await fetchAIResponse(inputMessage);
@@ -57,9 +59,11 @@ const Chatbot = () => {
                 setMessages(prev => [...prev, { text: messageContent, type: 'admin' }]);
                 console.log('Message Content:', messageContent);
                 // setOutputMessage(messageContent);
+                // Clear the input message state to reset the text input
+                setInputMessage('');
             }
-            // Clear the input message state to reset the text input
-            setInputMessage('');
+            // // Clear the input message state to reset the text input
+            // setInputMessage('');
         }
         catch (error: any) {
             setError(error)

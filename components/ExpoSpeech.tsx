@@ -4,11 +4,11 @@ import tw from 'tailwind-react-native-classnames';
 import * as Speech from 'expo-speech';
 import { AntDesign } from '@expo/vector-icons';
 
-const ExpoSpeech = ({ text }: { text: String }) => {
+const ExpoSpeech = ({ text }: { text: string }) => {
     const handleSpeech = () => {
-        console.log('Speaking:', text);
         Speech.stop(); // Stop any ongoing speech
-        Speech.speak(text.toString(), { language: 'en-US', rate: 0.5 });
+        console.log('Speech:', text);
+        Speech.speak(text, { language: 'en-US', rate: 1 });
     };
 
     return (
