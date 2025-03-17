@@ -25,7 +25,7 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Landing">
           <Stack.Screen name="Home" component={Landing} navigationKey='Landing' />
-          <Stack.Screen name="ZChat" component={Chatbot} navigationKey='Chatbot' />
+          <Stack.Screen name="URI AI Lab ChatBot" component={Chatbot} navigationKey='Chatbot' />
           {/* <SignedIn>
             <Stack.Screen name="ZChat" component={Chatbot} navigationKey='Chatbot' />
           </SignedIn> */}

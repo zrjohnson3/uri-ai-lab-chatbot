@@ -13,7 +13,7 @@ const Landing = ({ navigation }: { navigation: any }) => {
                 </Text>
                 <TouchableOpacity
                     style={styles.button}
-                    onPress={() => navigation.navigate('ZChat')}
+                    onPress={() => navigation.navigate('URI AI Lab ChatBot')}
                 >
                     <Text style={styles.buttonText}>Chat NOW</Text>
                 </TouchableOpacity>
