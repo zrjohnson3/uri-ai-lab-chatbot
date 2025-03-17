@@ -129,6 +129,103 @@ const URI_LAB_INFO = {
         ]
     },
 
+    projects: {
+        current: [
+            {
+                name: "AI-powered Chatbots for Small Businesses",
+                description: "Developing affordable and easy-to-implement chatbot solutions for small businesses",
+                status: "Active",
+                team: ["Faculty Lead", "2 Graduate Students", "3 Undergraduate Students"],
+                technologies: ["Python", "TensorFlow", "React Native", "Node.js"],
+                goals: [
+                    "Create user-friendly chatbot development platform",
+                    "Implement multi-language support",
+                    "Develop industry-specific templates",
+                    "Ensure GDPR and data privacy compliance"
+                ],
+                partners: ["Local Business Association", "Small Business Development Center"],
+                timeline: "12 months",
+                funding: "Industry Partnership Grant"
+            },
+            {
+                name: "Ethics in AI",
+                description: "Research project focusing on ethical considerations in AI development and deployment",
+                status: "Active",
+                team: ["Ethics Professor", "AI Researchers", "Law School Faculty"],
+                technologies: ["Python", "Natural Language Processing", "Ethical AI Frameworks"],
+                goals: [
+                    "Develop ethical guidelines for AI development",
+                    "Create assessment tools for AI bias",
+                    "Study societal impact of AI decisions",
+                    "Propose regulatory frameworks"
+                ],
+                partners: ["AI Ethics Institute", "Law School", "Industry Advisory Board"],
+                timeline: "18 months",
+                funding: "Research Grant"
+            },
+            {
+                name: "Natural Language Processing Projects",
+                description: "Advanced NLP research and applications development",
+                status: "Active",
+                team: ["NLP Specialist", "4 Graduate Students", "2 Industry Experts"],
+                technologies: ["BERT", "GPT", "Transformer Models", "PyTorch"],
+                goals: [
+                    "Improve language model efficiency",
+                    "Develop domain-specific NLP solutions",
+                    "Create multilingual processing tools",
+                    "Enhance sentiment analysis accuracy"
+                ],
+                partners: ["Tech Companies", "Research Institutions"],
+                timeline: "24 months",
+                funding: "Multiple Industry Grants"
+            },
+            {
+                name: "AI for Everyone - AI Literacy Program",
+                description: "Educational initiative to make AI concepts accessible to the general public",
+                status: "Active",
+                team: ["Education Specialist", "AI Researchers", "Content Developers"],
+                technologies: ["Interactive Learning Platforms", "Visualization Tools", "Online Courseware"],
+                goals: [
+                    "Create beginner-friendly AI curriculum",
+                    "Develop interactive learning materials",
+                    "Organize community workshops",
+                    "Build online learning platform"
+                ],
+                partners: ["Local Schools", "Community Centers", "Public Libraries"],
+                timeline: "Ongoing",
+                funding: "Education Grant"
+            }
+        ],
+        completed: [
+            {
+                name: "Healthcare AI Assistant",
+                description: "AI-powered assistant for healthcare professionals",
+                completionDate: "2023",
+                impact: "Deployed in 3 local hospitals",
+                technologies: ["Python", "TensorFlow", "Healthcare APIs"],
+                outcomes: [
+                    "Reduced administrative workload by 40%",
+                    "Improved patient scheduling efficiency",
+                    "Enhanced medical record management"
+                ]
+            }
+        ],
+        upcoming: [
+            {
+                name: "Autonomous Robotics Research",
+                description: "Research in autonomous systems and robotics",
+                startDate: "Q2 2024",
+                team: ["Robotics Expert", "2 Graduate Students"],
+                technologies: ["ROS", "Computer Vision", "Machine Learning"],
+                goals: [
+                    "Develop autonomous navigation systems",
+                    "Create object recognition models",
+                    "Implement safety protocols"
+                ]
+            }
+        ]
+    },
+
     research: {
         areas: [
             "Applied AI in Healthcare",
@@ -173,22 +270,56 @@ const URI_LAB_INFO = {
 
 export const fetchAIResponse = async (
     inputMessage: string, 
-    systemPrompt: string = 'You are chatting with ZenBot, an AI assistant.',
+    systemPrompt: string = 'You are chatting with the URI AI Lab Assistant.',
     previousMessages: ChatMessage[] = [],
     options: ChatOptions = {}
 ) => {
     try {
+        // Create a unified context that includes all information categories
+        const unifiedContext = `You are the URI AI Lab's intelligent assistant with comprehensive knowledge about our organization.
+
+Key Information Available to You:
+1. Lab Information: Detailed knowledge about URI AI Lab, location, team, and facilities
+2. Technical Expertise: In-depth understanding of our research areas, technical capabilities, and infrastructure
+3. Collaboration Opportunities: Knowledge about partnerships, projects, and engagement models
+4. Product Information: Detailed information about our AI platforms and services
+
+Based on the user's question, you should:
+1. Analyze the query intent to determine relevant information categories
+2. Draw from multiple categories when needed to provide comprehensive answers
+3. Maintain context throughout the conversation
+4. Provide specific, detailed responses using the most relevant information
+
+Available Knowledge Base:
+${JSON.stringify({
+    labInfo: URI_LAB_INFO,
+    technical: TECHNICAL_DOCS,
+    products: PRODUCT_CATALOG,
+    company: COMPANY_INFO
+}, null, 2)}
+
+Response Guidelines:
+1. For technical questions: Include specific technical details and capabilities
+2. For general inquiries: Focus on lab information and overview
+3. For collaboration requests: Emphasize research areas and partnership opportunities
+4. Always provide context-relevant examples and specific details
+5. If a question spans multiple areas, combine relevant information from different categories
+6. Maintain a professional yet approachable tone
+7. Use specific numbers, locations, and details from our knowledge base when relevant`;
+
         const messages: ChatMessage[] = [
-            { role: 'system', content: systemPrompt },
+            { role: 'system', content: unifiedContext },
             ...previousMessages,
             { role: 'user', content: inputMessage }
         ];
 
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-            model: options.model || 'gpt-3.5-turbo',
+            model: options.model || 'gpt-4-turbo-preview', // Using GPT-4 for better context understanding
             messages: messages,
             temperature: options.temperature || 0.7,
-            max_tokens: options.max_tokens || 150,
+            max_tokens: options.max_tokens || 500, // Increased token limit for more detailed responses
+            presence_penalty: 0.6, // Encourage diverse responses
+            frequency_penalty: 0.3, // Reduce repetition
         }, {
             headers: {
                 'Content-Type': 'application/json',
@@ -204,87 +335,9 @@ export const fetchAIResponse = async (
     }
 }
 
-// Update EXAMPLE_PROMPTS with URI-specific context
-export const EXAMPLE_PROMPTS = {
-    customerService: `You are a helpful representative of the URI AI Laboratory, located at the University of Rhode Island.
-    
-    Lab Information:
-    ${COMPANY_INFO.about}
-    
-    Location & Contact:
-    - Building: ${URI_LAB_INFO.location.building}
-    - Address: ${URI_LAB_INFO.location.address}
-    - Hours: ${URI_LAB_INFO.location.hours}
-    - Email: ${URI_LAB_INFO.contact.email}
-    
-    Our Team:
-    We are ${URI_LAB_INFO.team.size} consisting of ${URI_LAB_INFO.team.composition.join(', ')}.
-    
-    Please provide friendly, accurate, and helpful responses about our lab, research, and services.
-    For technical inquiries, direct them to our technical support.
-    For research collaboration inquiries, mention our expertise areas: ${URI_LAB_INFO.team.expertise.join(', ')}.`,
-    
-    technicalSupport: `You are a technical specialist at the URI AI Laboratory.
-    
-    Technical Capabilities:
-    ${JSON.stringify(TECHNICAL_DOCS, null, 2)}
-    
-    Lab Facilities:
-    ${JSON.stringify(URI_LAB_INFO.facilities, null, 2)}
-    
-    Research Areas:
-    ${URI_LAB_INFO.research.areas.join('\n')}
-    
-    Focus on providing clear, technical guidance while maintaining a professional academic tone.
-    For complex research inquiries, suggest scheduling a meeting with our faculty members.
-    When discussing technical capabilities, emphasize our high-performance computing resources and research infrastructure.`,
-    
-    salesAssistant: `You are a business development representative for the URI AI Laboratory.
-    
-    About Our Lab:
-    ${COMPANY_INFO.about}
-    
-    Our Mission:
-    ${COMPANY_INFO.mission}
-    
-    Research Portfolio:
-    ${JSON.stringify(URI_LAB_INFO.research, null, 2)}
-    
-    Collaboration Opportunities:
-    1. Research partnerships
-    2. Industry projects
-    3. Student internships
-    4. Technology licensing
-    
-    When discussing collaboration:
-    1. Understand the potential partner's specific needs and research interests
-    2. Highlight relevant research areas and expertise
-    3. Explain our facilities and resources
-    4. Discuss potential funding and partnership models
-    5. Emphasize our academic excellence and industry connections
-    
-    Remember to focus on mutual benefits and research impact.
-    Direct detailed technical questions to our faculty experts.`
-};
-
-// Enhanced conversation context creator
-export const createConversationContext = (businessInfo: string) => {
-    return `As an AI assistant for URI AI, you have access to the following business context:
-    ${businessInfo}
-    
-    Company Values:
-    ${COMPANY_INFO.values.join('\n')}
-    
-    Available Products:
-    ${Object.entries(PRODUCT_CATALOG).map(([_, product]) => product.name).join('\n')}
-    
-    Please provide accurate and relevant responses while maintaining our professional tone.
+// Remove the separate EXAMPLE_PROMPTS as we're now using a unified context approach
+export const createConversationContext = (customContext: string = '') => {
+    return `${customContext}\n\nPlease provide accurate and relevant responses while maintaining our professional tone.
     If you're unsure about any specific details, acknowledge that and provide general guidance
-    or offer to connect the customer with a human representative.
-    
-    Remember to:
-    1. Stay within the scope of provided information
-    2. Be transparent about limitations
-    3. Maintain consistency with our brand voice
-    4. Escalate complex issues to human support when necessary`;
+    or offer to connect the user with a human representative.`;
 };
