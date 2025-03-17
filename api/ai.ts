@@ -103,7 +103,75 @@ const TECHNICAL_DOCS = {
 };
 
 // URI AI Lab specific information
-const URI_LAB_INFO = {
+export interface Project {
+    name: string;
+    description: string;
+    status: string;
+    team: string[];
+    technologies: string[];
+    goals: string[];
+    partners: string[];
+    timeline: string;
+    funding: string;
+}
+
+export interface CompletedProject {
+    name: string;
+    description: string;
+    completionDate: string;
+    impact: string;
+    technologies: string[];
+    outcomes: string[];
+}
+
+export interface UpcomingProject {
+    name: string;
+    description: string;
+    startDate: string;
+    team: string[];
+    technologies: string[];
+    goals: string[];
+}
+
+export interface URI_LAB_INFO_TYPE {
+    location: {
+        building: string;
+        address: string;
+        directions: string;
+        hours: string;
+        parking: string;
+    };
+    team: {
+        size: string;
+        composition: string[];
+        expertise: string[];
+    };
+    projects: {
+        current: Project[];
+        completed: CompletedProject[];
+        upcoming: UpcomingProject[];
+    };
+    research: {
+        areas: string[];
+        publications: string;
+        collaborations: string[];
+    };
+    contact: {
+        email: string;
+        phone: string;
+        social: {
+            twitter: string;
+            linkedin: string;
+            github: string;
+        };
+    };
+    facilities: {
+        equipment: string[];
+        resources: string[];
+    };
+}
+
+export const URI_LAB_INFO: URI_LAB_INFO_TYPE = {
     location: {
         building: "URI Library",
         address: "Carothers Library, Room 147, 15 Lippitt Rd, Kingston, RI 02881",
