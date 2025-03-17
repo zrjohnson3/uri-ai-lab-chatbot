@@ -20,19 +20,37 @@ export default function App() {
       routerReplace={() => { }}
       publishableKey={development.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY}
     >
-
-
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Landing">
-          <Stack.Screen name="Home" component={Landing} navigationKey='Landing' />
-          <Stack.Screen name="URI AI Lab ChatBot" component={Chatbot} navigationKey='Chatbot' />
-          {/* <SignedIn>
-            <Stack.Screen name="ZChat" component={Chatbot} navigationKey='Chatbot' />
-          </SignedIn> */}
-          <Stack.Screen name="Login" component={Login} navigationKey='Login' />
-          <Stack.Screen name="SignUp" component={CreateAccount} navigationKey='SignUpScreen' />
+          <Stack.Screen 
+            name="Landing" 
+            component={Landing} 
+            options={{ 
+              title: 'URI AI Lab',
+              headerStyle: {
+                backgroundColor: '#003DA5',
+              },
+              headerTintColor: '#fff',
+              headerTitleStyle: {
+                fontWeight: 'bold',
+              }
+            }}
+          />
+          <Stack.Screen 
+            name="Chatbot" 
+            component={Chatbot} 
+            options={{ 
+              title: 'URI AI Lab Assistant',
+              headerStyle: {
+                backgroundColor: '#003DA5',
+              },
+              headerTintColor: '#fff',
+            }}
+          />
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="SignUp" component={CreateAccount} />
         </Stack.Navigator>
       </NavigationContainer>
-    </ClerkProvider >
+    </ClerkProvider>
   );
 }
