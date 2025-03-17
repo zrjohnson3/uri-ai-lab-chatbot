@@ -1,26 +1,19 @@
 import { StatusBar } from 'expo-status-bar';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Button } from 'react-native';
-import React, { useState, useEffect, useRef } from 'react';
-import { fetchAIResponse, EXAMPLE_PROMPTS, createConversationContext } from '../api/ai';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { fetchAIResponse } from '../api/ai';
 import tw from 'tailwind-react-native-classnames';
 import ChatBubble from '../components/ChatBubble';
 import { useNavigation } from '@react-navigation/native';
-
-// Define chat modes with more appropriate names
-const CHAT_MODES = {
-    DEFAULT: 'default',
-    INFO: 'info',
-    TECHNICAL: 'technical',
-    COLLABORATION: 'collaboration'
-};
 
 const Chatbot = () => {
     const [messages, setMessages] = useState<{ text: string; type: 'user' | 'admin' }[]>([]);
     const [inputMessage, setInputMessage] = useState('');
     const [error, setError] = useState(null);
-    const [chatMode, setChatMode] = useState(CHAT_MODES.DEFAULT);
+    const [isTyping, setIsTyping] = useState(false);
     
-    const inputRef = useRef(null);
+    const inputRef = useRef<TextInput>(null);
+    const scrollViewRef = useRef<ScrollView>(null);
     const navigator = useNavigation();
 
     // Convert messages to ChatMessage format for API
@@ -31,20 +24,6 @@ const Chatbot = () => {
         }));
     };
 
-    // Get the appropriate system prompt based on chat mode
-    const getSystemPrompt = () => {
-        switch(chatMode) {
-            case CHAT_MODES.INFO:
-                return EXAMPLE_PROMPTS.customerService;
-            case CHAT_MODES.TECHNICAL:
-                return EXAMPLE_PROMPTS.technicalSupport;
-            case CHAT_MODES.COLLABORATION:
-                return EXAMPLE_PROMPTS.salesAssistant;
-            default:
-                return 'You are the URI AI Lab assistant, ready to help with information about our research, facilities, and collaboration opportunities.';
-        }
-    };
-
     // Handle Text Input
     const handleTextInput = (text: string) => {
         setInputMessage(text);
@@ -53,37 +32,35 @@ const Chatbot = () => {
     // Submit Message Button Clicked
     const handleSubmitMessage = async () => {
         if (inputMessage.trim() === '') {
-            console.log('Empty Message');
             return;
         }
 
         setMessages(prev => [...prev, { text: inputMessage, type: 'user' }]);
         const currentMessage = inputMessage;
         setInputMessage('');
+        setIsTyping(true);
 
         try {
             const data = await fetchAIResponse(
                 currentMessage,
-                getSystemPrompt(),
-                getConversationHistory(),
-                { temperature: 0.7 }
+                undefined, // Using default unified context
+                getConversationHistory()
             );
 
             if (data.choices && data.choices.length > 0) {
                 const messageContent = data.choices[0].message.content;
                 setMessages(prev => [...prev, { text: messageContent, type: 'admin' }]);
+                // Scroll to bottom after new message
+                scrollViewRef.current?.scrollToEnd({ animated: true });
             }
         }
         catch (error: any) {
             setError(error);
             console.error('Error:', error);
         }
-    }
-
-    // Change chat mode
-    const handleChangeChatMode = (mode: string) => {
-        setChatMode(mode);
-        setMessages([]); // Clear chat history when changing modes
+        finally {
+            setIsTyping(false);
+        }
     }
 
     return (
@@ -92,8 +69,7 @@ const Chatbot = () => {
             style={[tw`flex-1`, { backgroundColor: '#f8fafc' }]}
             keyboardVerticalOffset={Platform.OS === "ios" ? 78 : 0}
         >
-            {/* Mode Selection */}
-            <View style={[tw`flex-row justify-around p-3 bg-white`, {
+            <View style={[tw`p-4 bg-white`, {
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 1 },
                 shadowOpacity: 0.1,
@@ -102,41 +78,20 @@ const Chatbot = () => {
                 borderBottomWidth: 1,
                 borderBottomColor: '#f0f0f0'
             }]}>
-                {Object.entries(CHAT_MODES).map(([key, mode]) => (
-                    <TouchableOpacity 
-                        key={mode}
-                        onPress={() => handleChangeChatMode(mode)}
-                        style={[
-                            tw`px-4 py-2 rounded-full`,
-                            chatMode === mode 
-                                ? { backgroundColor: '#003DA5' }
-                                : { backgroundColor: '#f3f4f6' }
-                        ]}
-                    >
-                        <Text style={[
-                            tw`text-sm font-medium`,
-                            chatMode === mode ? tw`text-white` : tw`text-gray-600`
-                        ]}>
-                            {key.charAt(0) + key.slice(1).toLowerCase()}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
+                <Text style={tw`text-center text-xl font-bold text-gray-800`}>
+                    URI AI Lab Assistant
+                </Text>
+                <Text style={tw`text-center text-sm text-gray-600 mt-2`}>
+                    Ask me anything about our lab, research, or services
+                </Text>
             </View>
 
             <ScrollView 
+                ref={scrollViewRef}
                 style={tw`flex-1`}
                 contentContainerStyle={tw`pb-4`}
                 keyboardShouldPersistTaps="handled"
             >
-                <View style={tw`px-4 py-6`}>
-                    <Text style={tw`text-center text-xl font-bold text-gray-800`}>
-                        URI AI Lab Assistant
-                    </Text>
-                    <Text style={tw`text-center text-sm text-gray-600 mt-2`}>
-                        {getModeDescription(chatMode)}
-                    </Text>
-                </View>
-
                 <View style={tw`flex-1 px-2`}>
                     {messages.map((message, index) => (
                         <ChatBubble 
@@ -146,6 +101,11 @@ const Chatbot = () => {
                             style={message.type === 'user' ? styles.userMessage : styles.botMessages} 
                         />
                     ))}
+                    {isTyping && (
+                        <View style={[tw`p-2 mx-3 rounded-lg bg-gray-100`, { width: 60 }]}>
+                            <Text style={tw`text-gray-500`}>...</Text>
+                        </View>
+                    )}
                 </View>
             </ScrollView>
 
@@ -166,21 +126,29 @@ const Chatbot = () => {
                             fontSize: 16
                         }]}
                         value={inputMessage}
-                        placeholder="Type your message..."
+                        placeholder="Ask about our research, facilities, or services..."
                         placeholderTextColor="#9CA3AF"
                         multiline
                     />
                     <TouchableOpacity 
                         onPress={handleSubmitMessage}
-                        disabled={!inputMessage.trim()}
+                        disabled={!inputMessage.trim() || isTyping}
                         style={[
                             tw`rounded-full p-3`,
-                            { backgroundColor: inputMessage.trim() ? '#003DA5' : '#E5E7EB' }
+                            { 
+                                backgroundColor: (!inputMessage.trim() || isTyping) 
+                                    ? '#E5E7EB' 
+                                    : '#003DA5'
+                            }
                         ]}
                     >
                         <Text style={[
                             tw`text-center font-medium`,
-                            { color: inputMessage.trim() ? '#ffffff' : '#9CA3AF' }
+                            { 
+                                color: (!inputMessage.trim() || isTyping)
+                                    ? '#9CA3AF'
+                                    : '#ffffff'
+                            }
                         ]}>Send</Text>
                     </TouchableOpacity>
                 </View>
@@ -191,21 +159,6 @@ const Chatbot = () => {
     );
 }
 
-// Helper function to get mode descriptions
-const getModeDescription = (mode: string) => {
-    switch(mode) {
-        case CHAT_MODES.INFO:
-            return "Ask about our lab, team, and facilities";
-        case CHAT_MODES.TECHNICAL:
-            return "Technical inquiries and research questions";
-        case CHAT_MODES.COLLABORATION:
-            return "Explore research partnerships and collaboration";
-        default:
-            return "How can I assist you today?";
-    }
-};
-
-// Update styles
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -219,19 +172,4 @@ const styles = StyleSheet.create({
     }
 });
 
-// Update theme colors to match URI brand
-const themeColors = {
-    background: 'bg-white',
-    button: 'bg-blue-800 rounded-lg text-white px-4 py-2',
-    buttonText: 'text-white',
-    input: 'bg-white rounded-lg px-4 py-2',
-    text: 'text-gray-800'
-};
-
-const inputStyle = tw`flex-1 mx-2 p-2 border border-black rounded-lg`;
-const buttonStyle = tw`px-4 py-2 rounded-lg ${themeColors.button}`;
-
-const messageContainerStyle = tw`p-4 border-b border-blue-200 w-full`;
-const messageTextStyle = tw`${themeColors.text} text-lg`;
-
-export default Chatbot
+export default Chatbot;

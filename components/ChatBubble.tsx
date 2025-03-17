@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Animated } from 'react-native';
+import { View, Text, Animated, Dimensions } from 'react-native';
 import tw from 'tailwind-react-native-classnames';
 import ExpoSpeech from './ExpoSpeech';
 
@@ -13,9 +13,12 @@ interface ChatBubbleProps {
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({ text, type, style }) => {
     const isUser = type === 'user';
+    const screenWidth = Dimensions.get('window').width;
+    
     const bubbleStyle = [
-        tw`p-4 rounded-2xl my-1 mx-3 max-w-3/4`,
+        tw`p-4 rounded-2xl my-1 mx-3`,
         {
+            maxWidth: screenWidth * 0.75,
             shadowColor: "#000",
             shadowOffset: {
                 width: 0,
