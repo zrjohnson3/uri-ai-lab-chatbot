@@ -1,10 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { fetchAIResponse } from '../api/ai';
 import tw from 'tailwind-react-native-classnames';
 import ChatBubble from '../components/ChatBubble';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+
+interface RouteParams {
+    userRole?: string;
+}
 
 const Chatbot = () => {
     const [messages, setMessages] = useState<{ text: string; type: 'user' | 'admin' }[]>([]);
@@ -14,7 +18,30 @@ const Chatbot = () => {
     
     const inputRef = useRef<TextInput>(null);
     const scrollViewRef = useRef<ScrollView>(null);
-    const navigator = useNavigation();
+    const navigation = useNavigation();
+    const route = useRoute();
+    const { userRole } = route.params as RouteParams;
+
+    // Set initial welcome message based on user role
+    useEffect(() => {
+        const welcomeMessage = getWelcomeMessage();
+        setMessages([{ text: welcomeMessage, type: 'admin' }]);
+    }, [userRole]);
+
+    const getWelcomeMessage = () => {
+        switch (userRole) {
+            case 'student':
+                return "Welcome! I'm here to help you explore our research projects, access learning materials, and find opportunities to get involved in AI research. What would you like to know about?";
+            case 'faculty':
+                return "Welcome! I can help you with research collaboration opportunities, lab resources, and connecting with other faculty members. How can I assist you today?";
+            case 'industry':
+                return "Welcome! I'm here to help you explore partnership opportunities, learn about our research capabilities, and discuss potential collaborations. What interests you?";
+            case 'public':
+                return "Welcome! I can help you learn about our AI research initiatives, public programs, and how our work impacts the community. What would you like to know?";
+            default:
+                return "Welcome to the URI AI Lab! I'm here to help you learn about our research, facilities, and services. What would you like to know?";
+        }
+    };
 
     // Convert messages to ChatMessage format for API
     const getConversationHistory = () => {
@@ -43,7 +70,7 @@ const Chatbot = () => {
         try {
             const data = await fetchAIResponse(
                 currentMessage,
-                undefined, // Using default unified context
+                `You are the URI AI Lab's intelligent assistant. The user is a ${userRole || 'visitor'}. Provide responses tailored to their role and interests.`,
                 getConversationHistory()
             );
 
@@ -69,7 +96,7 @@ const Chatbot = () => {
             style={[tw`flex-1`, { backgroundColor: '#f8fafc' }]}
             keyboardVerticalOffset={Platform.OS === "ios" ? 78 : 0}
         >
-            <View style={[tw`p-4 bg-white`, {
+            <View style={[tw`py-2 bg-white`, {
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 1 },
                 shadowOpacity: 0.1,
@@ -78,11 +105,11 @@ const Chatbot = () => {
                 borderBottomWidth: 1,
                 borderBottomColor: '#f0f0f0'
             }]}>
-                <Text style={tw`text-center text-xl font-bold text-gray-800`}>
+                <Text style={tw`text-center text-base font-medium text-gray-800`}>
                     URI AI Lab Assistant
                 </Text>
-                <Text style={tw`text-center text-sm text-gray-600 mt-2`}>
-                    Ask me anything about our lab, research, or services
+                <Text style={tw`text-center text-xs text-gray-600`}>
+                    {userRole ? `Welcome, ${userRole.charAt(0).toUpperCase() + userRole.slice(1)}!` : 'Welcome!'}
                 </Text>
             </View>
 
