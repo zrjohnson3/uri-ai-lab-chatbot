@@ -31,7 +31,7 @@ const config: ExpoConfig = {
     },
     extra: {
         eas: {
-            projectId: "your-project-id"
+            projectId: "9b8c84db-f81e-429c-9aab-4d666b1054a4"
         },
         clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY,
     }

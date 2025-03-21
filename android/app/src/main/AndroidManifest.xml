@@ -25,6 +25,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="com.uri.ailabassistant"/>
+        <data android:scheme="exp+uri-ai-lab-assistant"/>
       </intent-filter>
     </activity>
   </application>
