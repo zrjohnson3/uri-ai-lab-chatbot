@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard, Animated, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import React, { useState, useRef, useEffect } from 'react';
 import { fetchAIResponse } from '../api/ai';
 import tw from 'tailwind-react-native-classnames';
@@ -11,11 +11,56 @@ interface RouteParams {
     userRole?: string;
 }
 
+const TypingIndicator = () => {
+    const [dots, setDots] = useState('');
+    const fadeAnim = useRef(new Animated.Value(0.3)).current;
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setDots(prev => prev.length >= 3 ? '' : prev + '.');
+        }, 500);
+
+        // Create a loop animation
+        const startAnimation = () => {
+            Animated.sequence([
+                Animated.timing(fadeAnim, {
+                    toValue: 1,
+                    duration: 500,
+                    useNativeDriver: true
+                }),
+                Animated.timing(fadeAnim, {
+                    toValue: 0.3,
+                    duration: 500,
+                    useNativeDriver: true
+                })
+            ]).start(() => startAnimation()); // Restart animation when complete
+        };
+
+        startAnimation();
+        return () => {
+            clearInterval(interval);
+            fadeAnim.stopAnimation();
+        };
+    }, []);
+
+    return (
+        <View style={[tw`p-4 mx-3 rounded-lg bg-white border border-gray-200`, { width: 100 }]}>
+            <View style={tw`flex-row items-center`}>
+                <View style={[tw`w-2 h-2 rounded-full bg-blue-500 mr-2`, { opacity: 0.7 }]} />
+                <Animated.Text style={[tw`text-gray-500`, { opacity: fadeAnim }]}>
+                    {`Typing${dots}`}
+                </Animated.Text>
+            </View>
+        </View>
+    );
+};
+
 const Chatbot = () => {
     const [messages, setMessages] = useState<{ text: string; type: 'user' | 'admin' }[]>([]);
     const [inputMessage, setInputMessage] = useState('');
     const [error, setError] = useState(null);
     const [isTyping, setIsTyping] = useState(false);
+    const [lastScrollPosition, setLastScrollPosition] = useState(0);
     
     const inputRef = useRef<TextInput>(null);
     const scrollViewRef = useRef<ScrollView>(null);
@@ -79,6 +124,11 @@ const Chatbot = () => {
         setInputMessage(text);
     }
 
+    // Track scroll position
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        setLastScrollPosition(event.nativeEvent.contentOffset.y);
+    };
+
     // Submit Message Button Clicked
     const handleSubmitMessage = async () => {
         if (inputMessage.trim() === '') {
@@ -93,6 +143,11 @@ const Chatbot = () => {
         setInputMessage('');
         setIsTyping(true);
 
+        // Scroll to show user's message
+        setTimeout(() => {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+
         try {
             const data = await fetchAIResponse(
                 currentMessage,
@@ -103,9 +158,19 @@ const Chatbot = () => {
             if (data.choices && data.choices.length > 0) {
                 const messageContent = data.choices[0].message.content;
                 setMessages(prev => [...prev, { text: messageContent, type: 'admin' }]);
-                // Scroll to bottom after new message with a slight delay to ensure smooth animation
+                
+                // After adding AI response, scroll appropriately
                 setTimeout(() => {
-                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                    if (messageContent.length > 100) {
+                        // For longer messages, scroll to show the start of the AI response
+                        scrollViewRef.current?.scrollTo({ 
+                            y: lastScrollPosition + 100, // Approximate height of user message
+                            animated: true 
+                        });
+                    } else {
+                        // For shorter messages, scroll to bottom
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                    }
                 }, 100);
             }
         }
@@ -142,6 +207,8 @@ const Chatbot = () => {
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
                 onTouchEnd={handleDoubleTap}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
             >
                 <View style={tw`flex-1 px-2 pt-2`}>
                     {messages.map((message, index) => (
@@ -152,11 +219,7 @@ const Chatbot = () => {
                             style={message.type === 'user' ? styles.userMessage : styles.botMessages} 
                         />
                     ))}
-                    {isTyping && (
-                        <View style={[tw`p-3 mx-3 rounded-lg bg-gray-100`, { width: 80 }]}>
-                            <Text style={tw`text-gray-500 text-center`}>...</Text>
-                        </View>
-                    )}
+                    {isTyping && <TypingIndicator />}
                 </View>
             </ScrollView>
 
