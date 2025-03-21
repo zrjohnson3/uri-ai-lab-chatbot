@@ -29,7 +29,11 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ text, type, style }) => {
         ]}>
             <View style={bubbleStyle}>
                 <Text style={textStyle}>{text}</Text>
-                {type !== 'user' && <ExpoSpeech text={text} style={styles.speech} />}
+                {type !== 'user' && (
+                    <View style={styles.speechContainer}>
+                        <ExpoSpeech text={text} style={styles.speech} />
+                    </View>
+                )}
             </View>
         </View>
     );
@@ -59,6 +63,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 2,
         elevation: 2,
+        position: 'relative',
     },
     userBubble: {
         backgroundColor: '#003DA5',
@@ -71,6 +76,7 @@ const styles = StyleSheet.create({
         borderColor: '#e5e7eb',
         paddingHorizontal: 16,
         paddingVertical: 16,
+        paddingBottom: 32,
     },
     userText: {
         color: '#ffffff',
@@ -82,8 +88,14 @@ const styles = StyleSheet.create({
         fontSize: 15,
         lineHeight: 22,
     },
+    speechContainer: {
+        position: 'absolute',
+        bottom: 8,
+        right: 8,
+    },
     speech: {
-        marginTop: 6,
+        opacity: 0.6,
+        transform: [{ scale: 0.8 }],
     }
 });
 
