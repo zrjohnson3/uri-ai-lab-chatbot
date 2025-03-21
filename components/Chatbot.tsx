@@ -1,10 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard } from 'react-native';
 import React, { useState, useRef, useEffect } from 'react';
 import { fetchAIResponse } from '../api/ai';
 import tw from 'tailwind-react-native-classnames';
 import ChatBubble from '../components/ChatBubble';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface RouteParams {
     userRole?: string;
@@ -21,6 +22,28 @@ const Chatbot = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const { userRole } = route.params as RouteParams;
+
+    // Configure the native header
+    useEffect(() => {
+        navigation.setOptions({
+            headerShown: true,
+            headerTitle: "URI AI Lab Assistant",
+            headerBackTitle: "Back",
+            headerTintColor: '#ffffff',
+            headerStyle: {
+                backgroundColor: '#003DA5',
+            },
+            headerTitleStyle: {
+                fontSize: 17,
+                fontWeight: '600',
+            },
+            headerRight: () => (
+                <Text style={[tw`text-white text-sm mr-4`, { opacity: 0.9 }]}>
+                    {userRole ? `${userRole.charAt(0).toUpperCase() + userRole.slice(1)}` : ''}
+                </Text>
+            ),
+        });
+    }, [navigation, userRole]);
 
     // Set initial welcome message based on user role
     useEffect(() => {
@@ -62,6 +85,9 @@ const Chatbot = () => {
             return;
         }
 
+        // Dismiss keyboard
+        Keyboard.dismiss();
+
         setMessages(prev => [...prev, { text: inputMessage, type: 'user' }]);
         const currentMessage = inputMessage;
         setInputMessage('');
@@ -77,8 +103,10 @@ const Chatbot = () => {
             if (data.choices && data.choices.length > 0) {
                 const messageContent = data.choices[0].message.content;
                 setMessages(prev => [...prev, { text: messageContent, type: 'admin' }]);
-                // Scroll to bottom after new message
-                scrollViewRef.current?.scrollToEnd({ animated: true });
+                // Scroll to bottom after new message with a slight delay to ensure smooth animation
+                setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                }, 100);
             }
         }
         catch (error: any) {
@@ -90,36 +118,32 @@ const Chatbot = () => {
         }
     }
 
+    // Handle double tap to dismiss keyboard
+    const lastTap = useRef(0);
+    const handleDoubleTap = () => {
+        const now = Date.now();
+        const DOUBLE_PRESS_DELAY = 300;
+        if (now - lastTap.current < DOUBLE_PRESS_DELAY) {
+            Keyboard.dismiss();
+        }
+        lastTap.current = now;
+    };
+
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={[tw`flex-1`, { backgroundColor: '#f8fafc' }]}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 78 : 0}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
         >
-            <View style={[tw`py-2 bg-white`, {
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.1,
-                shadowRadius: 2,
-                elevation: 3,
-                borderBottomWidth: 1,
-                borderBottomColor: '#f0f0f0'
-            }]}>
-                <Text style={tw`text-center text-base font-medium text-gray-800`}>
-                    URI AI Lab Assistant
-                </Text>
-                <Text style={tw`text-center text-xs text-gray-600`}>
-                    {userRole ? `Welcome, ${userRole.charAt(0).toUpperCase() + userRole.slice(1)}!` : 'Welcome!'}
-                </Text>
-            </View>
-
             <ScrollView 
                 ref={scrollViewRef}
                 style={tw`flex-1`}
-                contentContainerStyle={tw`pb-4`}
+                contentContainerStyle={tw`pb-6`}
                 keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                onTouchEnd={handleDoubleTap}
             >
-                <View style={tw`flex-1 px-2`}>
+                <View style={tw`flex-1 px-2 pt-2`}>
                     {messages.map((message, index) => (
                         <ChatBubble 
                             key={index} 
@@ -129,8 +153,8 @@ const Chatbot = () => {
                         />
                     ))}
                     {isTyping && (
-                        <View style={[tw`p-2 mx-3 rounded-lg bg-gray-100`, { width: 60 }]}>
-                            <Text style={tw`text-gray-500`}>...</Text>
+                        <View style={[tw`p-3 mx-3 rounded-lg bg-gray-100`, { width: 80 }]}>
+                            <Text style={tw`text-gray-500 text-center`}>...</Text>
                         </View>
                     )}
                 </View>
@@ -143,14 +167,16 @@ const Chatbot = () => {
                 shadowRadius: 3,
                 elevation: 5,
                 borderTopWidth: 1,
-                borderTopColor: '#f0f0f0'
+                borderTopColor: '#f0f0f0',
+                paddingBottom: Platform.OS === "ios" ? 24 : 16
             }]}>
                 <View style={tw`flex-row items-center`}>
                     <TextInput
                         ref={inputRef}
                         onChangeText={handleTextInput}
-                        style={[tw`flex-1 px-4 py-3 mr-3 rounded-full bg-gray-100`, {
-                            fontSize: 16
+                        style={[tw`flex-1 px-4 py-2.5 mr-3 rounded-full bg-gray-50 border border-gray-200`, {
+                            fontSize: 15,
+                            maxHeight: 100,
                         }]}
                         value={inputMessage}
                         placeholder="Ask about our research, facilities, or services..."
@@ -161,22 +187,21 @@ const Chatbot = () => {
                         onPress={handleSubmitMessage}
                         disabled={!inputMessage.trim() || isTyping}
                         style={[
-                            tw`rounded-full p-3`,
+                            tw`rounded-full p-3 flex items-center justify-center`,
                             { 
                                 backgroundColor: (!inputMessage.trim() || isTyping) 
                                     ? '#E5E7EB' 
-                                    : '#003DA5'
+                                    : '#003DA5',
+                                width: 44,
+                                height: 44,
                             }
                         ]}
                     >
-                        <Text style={[
-                            tw`text-center font-medium`,
-                            { 
-                                color: (!inputMessage.trim() || isTyping)
-                                    ? '#9CA3AF'
-                                    : '#ffffff'
-                            }
-                        ]}>Send</Text>
+                        <Ionicons 
+                            name="send" 
+                            size={20} 
+                            color={(!inputMessage.trim() || isTyping) ? '#9CA3AF' : '#ffffff'} 
+                        />
                     </TouchableOpacity>
                 </View>
             </View>
