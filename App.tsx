@@ -6,19 +6,24 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import CreateAccount from './components/CreateAccount';
 import Login from './components/Login';
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-expo";
-import { development } from './config';
 
 const Stack = createNativeStackNavigator();
 
+if (!process.env.EXPO_PUBLIC_CLERK_SECRET_KEY) {
+  throw new Error('Missing EXPO_PUBLIC_CLERK_SECRET_KEY environment variable');
+}
+
+const clerkKey = process.env.EXPO_PUBLIC_CLERK_SECRET_KEY;
+
 export default function App() {
 
-  console.log('Clerk Key:', development.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY)
+  console.log('Clerk Key:', process.env.EXPO_PUBLIC_CLERK_SECRET_KEY)
 
   return (
     <ClerkProvider
       routerPush={() => { }}
       routerReplace={() => { }}
-      publishableKey={development.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      publishableKey={clerkKey}
     >
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Landing">

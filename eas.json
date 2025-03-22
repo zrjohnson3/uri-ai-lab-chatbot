@@ -9,13 +9,21 @@
       "ios": {
         "resourceClass": "m-medium",
         "buildConfiguration": "Debug"
+      },
+      "env": {
+        "ENVIRONMENT": "development"
       }
     },
     "preview": {
       "distribution": "internal",
       "ios": {
-        "resourceClass": "m-medium"
-      }
+        "resourceClass": "m-medium",
+        "buildConfiguration": "Release"
+      },
+      "env": {
+        "ENVIRONMENT": "preview"
+      },
+      "extends": "development"
     },
     "production": {
       "ios": {
@@ -26,9 +34,9 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "zrjohnson3@gmail.com",
+        "appleId": "zachary@searchdome.com",
         "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID",
-        "appleTeamId": "YOUR_APPLE_TEAM_ID"
+        "appleTeamId": "N79G7BTQP7"
       }
     }
   }
