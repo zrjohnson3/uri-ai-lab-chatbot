@@ -1,6 +1,5 @@
 import React from 'react'
 import axios from 'axios';
-import { development } from '../config';
 
 interface ChatMessage {
     role: 'system' | 'user' | 'assistant';
@@ -343,6 +342,10 @@ export const fetchAIResponse = async (
     options: ChatOptions = {}
 ) => {
     try {
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error('OpenAI API key is not configured');
+        }
+
         // Create a unified context that includes all information categories
         const unifiedContext = `You are the URI AI Lab's intelligent assistant with comprehensive knowledge about our organization.
 
@@ -382,16 +385,16 @@ Response Guidelines:
         ];
 
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-            model: options.model || 'gpt-4-turbo-preview', // Using GPT-4 for better context understanding
+            model: options.model || 'gpt-4-turbo-preview',
             messages: messages,
             temperature: options.temperature || 0.7,
-            max_tokens: options.max_tokens || 500, // Increased token limit for more detailed responses
-            presence_penalty: 0.6, // Encourage diverse responses
-            frequency_penalty: 0.3, // Reduce repetition
+            max_tokens: options.max_tokens || 500,
+            presence_penalty: 0.6,
+            frequency_penalty: 0.3,
         }, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${development.OPENAI_API_KEY}`
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
             }
         });
 
