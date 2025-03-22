@@ -16,9 +16,10 @@
     },
     "preview": {
       "distribution": "internal",
+      "developmentClient": true,
       "ios": {
         "resourceClass": "m-medium",
-        "buildConfiguration": "Release"
+        "buildConfiguration": "Debug"
       },
       "env": {
         "ENVIRONMENT": "preview"
