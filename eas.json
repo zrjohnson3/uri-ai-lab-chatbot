@@ -22,8 +22,7 @@
       },
       "env": {
         "ENVIRONMENT": "preview"
-      },
-      "extends": "development"
+      }
     },
     "production": {
       "ios": {
