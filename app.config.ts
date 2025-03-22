@@ -17,14 +17,21 @@ const config: ExpoConfig = {
     ],
     ios: {
         supportsTablet: true,
-        bundleIdentifier: "com.uri.ailabassistant"
+        bundleIdentifier: "com.uri.ailabassistant",
+        infoPlist: {
+            NSMicrophoneUsageDescription: "This app needs access to the microphone to enable voice input for chat messages.",
+            NSSpeechRecognitionUsageDescription: "This app needs access to speech recognition to convert voice input into text for chat messages."
+        }
     },
     android: {
         package: "com.uri.ailabassistant",
         adaptiveIcon: {
             foregroundImage: "./assets/adaptive-icon.png",
             backgroundColor: "#003DA5"
-        }
+        },
+        permissions: [
+            "android.permission.RECORD_AUDIO"
+        ]
     },
     web: {
         favicon: "./assets/favicon.png"

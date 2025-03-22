@@ -26,8 +26,13 @@
       }
     },
     "production": {
+      "distribution": "store",
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "buildConfiguration": "Release"
+      },
+      "env": {
+        "ENVIRONMENT": "production"
       }
     }
   },
@@ -35,7 +40,7 @@
     "production": {
       "ios": {
         "appleId": "zachary@searchdome.com",
-        "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID",
+        "ascAppId": "6743660010",
         "appleTeamId": "N79G7BTQP7"
       }
     }
