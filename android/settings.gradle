@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'URIAILabAssistant'
+rootProject.name = 'URI AI Lab Assistant'
 
 dependencyResolutionManagement {
   versionCatalogs {
