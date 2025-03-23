@@ -3,7 +3,7 @@ import { ExpoConfig } from 'expo/config';
 const config: ExpoConfig = {
     name: "URI AI Lab Assistant",
     slug: "uri-ai-lab-assistant",
-    version: "1.0.0",
+    version: "1.0.1",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -18,6 +18,7 @@ const config: ExpoConfig = {
     ios: {
         supportsTablet: true,
         bundleIdentifier: "com.uri.ailabassistant",
+        buildNumber: "2",
         infoPlist: {
             NSMicrophoneUsageDescription: "This app needs access to the microphone to enable voice input for chat messages.",
             NSSpeechRecognitionUsageDescription: "This app needs access to speech recognition to convert voice input into text for chat messages."
