@@ -8,7 +8,7 @@ const config: ExpoConfig = {
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     splash: {
-        image: "./assets/splash.png",
+        image: "./assets/icon.png",
         resizeMode: "contain",
         backgroundColor: "#003DA5"
     },
@@ -34,7 +34,7 @@ const config: ExpoConfig = {
         ]
     },
     web: {
-        favicon: "./assets/favicon.png"
+        favicon: "./assets/icon.png"
     },
     extra: {
         eas: {
