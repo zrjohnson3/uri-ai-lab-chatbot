@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard, Animated, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import React, { useState, useRef, useEffect } from 'react';
-import { fetchAIResponse } from '../api/ai';
+import { fetchAIResponse, getSpecificContext } from '../api/ai';
 import tw from 'tailwind-react-native-classnames';
 import ChatBubble from '../components/ChatBubble';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -138,7 +138,9 @@ const Chatbot = () => {
         // Dismiss keyboard
         Keyboard.dismiss();
 
-        setMessages(prev => [...prev, { text: inputMessage, type: 'user' }]);
+        // Add user message
+        const newUserMessage = { text: inputMessage, type: 'user' as const };
+        setMessages(prev => [...prev, newUserMessage]);
         const currentMessage = inputMessage;
         setInputMessage('');
         setIsTyping(true);
@@ -149,30 +151,43 @@ const Chatbot = () => {
         }, 100);
 
         try {
-            const data = await fetchAIResponse(
-                currentMessage,
-                `You are the URI AI Lab's intelligent assistant. The user is a ${userRole || 'visitor'}. Provide responses tailored to their role and interests.`,
-                getConversationHistory()
+            // Get conversation history
+            const conversationHistory = getConversationHistory();
+            
+            // Determine if we need context based on the message
+            let contextNeeded = '';
+            if (currentMessage.toLowerCase().includes('location') || currentMessage.toLowerCase().includes('where')) {
+                contextNeeded = 'location';
+            } else if (currentMessage.toLowerCase().includes('team') || currentMessage.toLowerCase().includes('who')) {
+                contextNeeded = 'team';
+            } else if (currentMessage.toLowerCase().includes('project') || currentMessage.toLowerCase().includes('research')) {
+                contextNeeded = 'projects';
+            }
+
+            // Get the AI response
+            const response = await fetchAIResponse(
+                contextNeeded ? `${currentMessage}\n\nRelevant context: ${getSpecificContext(contextNeeded)}` : currentMessage,
+                undefined, // Use default system message
+                conversationHistory
             );
 
-            if (data.choices && data.choices.length > 0) {
-                const messageContent = data.choices[0].message.content;
-                setMessages(prev => [...prev, { text: messageContent, type: 'admin' }]);
-                
-                // After adding AI response, scroll appropriately
-                setTimeout(() => {
-                    if (messageContent.length > 100) {
-                        // For longer messages, scroll to show the start of the AI response
-                        scrollViewRef.current?.scrollTo({ 
-                            y: lastScrollPosition + 100, // Approximate height of user message
-                            animated: true 
-                        });
-                    } else {
-                        // For shorter messages, scroll to bottom
-                        scrollViewRef.current?.scrollToEnd({ animated: true });
-                    }
-                }, 100);
-            }
+            // Add AI response
+            const newAdminMessage = { text: response, type: 'admin' as const };
+            setMessages(prev => [...prev, newAdminMessage]);
+            
+            // After adding AI response, scroll appropriately
+            setTimeout(() => {
+                if (response.length > 100) {
+                    // For longer messages, scroll to show the start of the AI response
+                    scrollViewRef.current?.scrollTo({ 
+                        y: lastScrollPosition + 100,
+                        animated: true 
+                    });
+                } else {
+                    // For shorter messages, scroll to bottom
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                }
+            }, 100);
         }
         catch (error: any) {
             setError(error);
@@ -181,7 +196,7 @@ const Chatbot = () => {
         finally {
             setIsTyping(false);
         }
-    }
+    };
 
     // Handle double tap to dismiss keyboard
     const lastTap = useRef(0);

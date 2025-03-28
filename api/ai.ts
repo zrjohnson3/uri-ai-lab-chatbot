@@ -335,61 +335,41 @@ export const URI_LAB_INFO: URI_LAB_INFO_TYPE = {
     }
 };
 
+// Base system message that defines the assistant's core behavior
+const BASE_SYSTEM_MESSAGE = `You are the URI AI Lab's intelligent assistant. You have comprehensive knowledge about:
+- The URI AI Lab's location, team, projects, and facilities
+- Our research areas and expertise
+- Our contact information and hours
+- Our technical capabilities and resources
+
+You should:
+1. Provide accurate, concise responses
+2. Be professional and helpful
+3. Maintain conversation context
+4. Use specific examples when relevant
+5. Admit if you're unsure about something`;
+
 export const fetchAIResponse = async (
     inputMessage: string, 
-    systemPrompt: string = 'You are chatting with the URI AI Lab Assistant.',
+    systemPrompt: string = BASE_SYSTEM_MESSAGE,
     previousMessages: ChatMessage[] = [],
     options: ChatOptions = {}
 ) => {
     try {
-        if (!process.env.OPENAI_API_KEY) {
-            throw new Error('OpenAI API key is not configured');
-        }
+        // If this is a new conversation, include the system message
+        const messages: ChatMessage[] = previousMessages.length === 0 ? 
+            [{ role: 'system', content: systemPrompt }] : 
+            previousMessages;
 
-        // Create a unified context that includes all information categories
-        const unifiedContext = `You are the URI AI Lab's intelligent assistant with comprehensive knowledge about our organization.
-
-Key Information Available to You:
-1. Lab Information: Detailed knowledge about URI AI Lab, location, team, and facilities
-2. Technical Expertise: In-depth understanding of our research areas, technical capabilities, and infrastructure
-3. Collaboration Opportunities: Knowledge about partnerships, projects, and engagement models
-4. Product Information: Detailed information about our AI platforms and services
-
-Based on the user's question, you should:
-1. Analyze the query intent to determine relevant information categories
-2. Draw from multiple categories when needed to provide comprehensive answers
-3. Maintain context throughout the conversation
-4. Provide specific, detailed responses using the most relevant information
-
-Available Knowledge Base:
-${JSON.stringify({
-    labInfo: URI_LAB_INFO,
-    technical: TECHNICAL_DOCS,
-    products: PRODUCT_CATALOG,
-    company: COMPANY_INFO
-}, null, 2)}
-
-Response Guidelines:
-1. For technical questions: Include specific technical details and capabilities
-2. For general inquiries: Focus on lab information and overview
-3. For collaboration requests: Emphasize research areas and partnership opportunities
-4. Always provide context-relevant examples and specific details
-5. If a question spans multiple areas, combine relevant information from different categories
-6. Maintain a professional yet approachable tone
-7. Use specific numbers, locations, and details from our knowledge base when relevant`;
-
-        const messages: ChatMessage[] = [
-            { role: 'system', content: unifiedContext },
-            ...previousMessages,
-            { role: 'user', content: inputMessage }
-        ];
+        // Add the new user message
+        messages.push({ role: 'user', content: inputMessage });
 
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-            model: options.model || 'gpt-4-turbo-preview',
+            model: options.model || 'gpt-3.5-turbo',
             messages: messages,
             temperature: options.temperature || 0.7,
             max_tokens: options.max_tokens || 500,
-            presence_penalty: 0.6,
+            presence_penalty: 0.3,
             frequency_penalty: 0.3,
         }, {
             headers: {
@@ -398,13 +378,32 @@ Response Guidelines:
             }
         });
 
-        return response.data;
-    }
-    catch (error) {
-        console.error('Error:', error);
+        return response.data.choices[0].message.content;
+    } catch (error) {
+        console.error('Error fetching AI response:', error);
         throw error;
     }
-}
+};
+
+// Function to get specific context when needed
+export const getSpecificContext = (topic: string): string => {
+    switch(topic.toLowerCase()) {
+        case 'location':
+            return JSON.stringify(URI_LAB_INFO.location);
+        case 'team':
+            return JSON.stringify(URI_LAB_INFO.team);
+        case 'projects':
+            return JSON.stringify(URI_LAB_INFO.projects);
+        case 'research':
+            return JSON.stringify(URI_LAB_INFO.research);
+        case 'contact':
+            return JSON.stringify(URI_LAB_INFO.contact);
+        case 'facilities':
+            return JSON.stringify(URI_LAB_INFO.facilities);
+        default:
+            return '';
+    }
+};
 
 // Remove the separate EXAMPLE_PROMPTS as we're now using a unified context approach
 export const createConversationContext = (customContext: string = '') => {
