@@ -61,12 +61,14 @@ const Chatbot = () => {
     const [error, setError] = useState(null);
     const [isTyping, setIsTyping] = useState(false);
     const [lastScrollPosition, setLastScrollPosition] = useState(0);
+    const [isScrolling, setIsScrolling] = useState(false);
     
     const inputRef = useRef<TextInput>(null);
     const scrollViewRef = useRef<ScrollView>(null);
     const navigation = useNavigation();
     const route = useRoute();
     const { userRole } = route.params as RouteParams;
+    const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
     // Configure the native header
     useEffect(() => {
@@ -119,17 +121,29 @@ const Chatbot = () => {
         }));
     };
 
-    // Handle Text Input
-    const handleTextInput = (text: string) => {
-        setInputMessage(text);
-    }
-
-    // Track scroll position
-    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        setLastScrollPosition(event.nativeEvent.contentOffset.y);
+    // Debounce typing indicator
+    const debouncedSetTyping = (value: boolean) => {
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+        typingTimeoutRef.current = setTimeout(() => {
+            setIsTyping(value);
+        }, 300);
     };
 
-    // Submit Message Button Clicked
+    // Optimize scroll handling
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const currentOffset = event.nativeEvent.contentOffset.y;
+        setLastScrollPosition(currentOffset);
+        
+        // Only update scroll state if we're actively scrolling
+        if (!isScrolling) {
+            setIsScrolling(true);
+            setTimeout(() => setIsScrolling(false), 150);
+        }
+    };
+
+    // Optimize message submission
     const handleSubmitMessage = async () => {
         if (inputMessage.trim() === '') {
             return;
@@ -143,31 +157,23 @@ const Chatbot = () => {
         setMessages(prev => [...prev, newUserMessage]);
         const currentMessage = inputMessage;
         setInputMessage('');
-        setIsTyping(true);
+        debouncedSetTyping(true);
 
-        // Scroll to show user's message
-        setTimeout(() => {
-            scrollViewRef.current?.scrollToEnd({ animated: true });
-        }, 100);
+        // Optimize scroll behavior
+        if (!isScrolling) {
+            setTimeout(() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+            }, 100);
+        }
 
         try {
             // Get conversation history
             const conversationHistory = getConversationHistory();
             
-            // Determine if we need context based on the message
-            let contextNeeded = '';
-            if (currentMessage.toLowerCase().includes('location') || currentMessage.toLowerCase().includes('where')) {
-                contextNeeded = 'location';
-            } else if (currentMessage.toLowerCase().includes('team') || currentMessage.toLowerCase().includes('who')) {
-                contextNeeded = 'team';
-            } else if (currentMessage.toLowerCase().includes('project') || currentMessage.toLowerCase().includes('research')) {
-                contextNeeded = 'projects';
-            }
-
             // Get the AI response
             const response = await fetchAIResponse(
-                contextNeeded ? `${currentMessage}\n\nRelevant context: ${getSpecificContext(contextNeeded)}` : currentMessage,
-                undefined, // Use default system message
+                currentMessage,
+                undefined,
                 conversationHistory
             );
 
@@ -175,16 +181,14 @@ const Chatbot = () => {
             const newAdminMessage = { text: response, type: 'admin' as const };
             setMessages(prev => [...prev, newAdminMessage]);
             
-            // After adding AI response, scroll appropriately
+            // Optimize scroll after response
             setTimeout(() => {
-                if (response.length > 100) {
-                    // For longer messages, scroll to show the start of the AI response
+                if (response.length > 100 && !isScrolling) {
                     scrollViewRef.current?.scrollTo({ 
                         y: lastScrollPosition + 100,
                         animated: true 
                     });
-                } else {
-                    // For shorter messages, scroll to bottom
+                } else if (!isScrolling) {
                     scrollViewRef.current?.scrollToEnd({ animated: true });
                 }
             }, 100);
@@ -194,9 +198,18 @@ const Chatbot = () => {
             console.error('Error:', error);
         }
         finally {
-            setIsTyping(false);
+            debouncedSetTyping(false);
         }
     };
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Handle double tap to dismiss keyboard
     const lastTap = useRef(0);
@@ -251,7 +264,7 @@ const Chatbot = () => {
                 <View style={tw`flex-row items-center`}>
                     <TextInput
                         ref={inputRef}
-                        onChangeText={handleTextInput}
+                        onChangeText={setInputMessage}
                         style={[tw`flex-1 px-4 py-2.5 mr-3 rounded-full bg-gray-50 border border-gray-200`, {
                             fontSize: 15,
                             maxHeight: 100,
